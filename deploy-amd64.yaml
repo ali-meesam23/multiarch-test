@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multiarch-test-amd64
+  labels:
+    app: multiarch-test
+    arch: amd64
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: multiarch-test
+      arch: amd64
+  template:
+    metadata:
+      labels:
+        app: multiarch-test
+        arch: amd64
+    spec:
+      # Option 1: Target a specific node by name (uncomment and set the node name)
+      nodeName: "node1"
+      
+      # Option 2: Use nodeSelector for architecture-based selection (current)
+      # nodeSelector:
+      #   kubernetes.io/arch: amd64
+      
+      # Option 3: Use nodeAffinity for more flexible node selection (uncomment to use)
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/arch
+      #           operator: In
+      #           values:
+      #           - amd64
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #     - weight: 100
+      #       preference:
+      #         matchExpressions:
+      #         - key: node-role.kubernetes.io/worker
+      #           operator: In
+      #           values:
+      #           - "true"
+      
+      containers:
+        - name: app
+          image: docker.io/YOUR_USER/multiarch-test:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: multiarch-test-amd64
+  labels:
+    app: multiarch-test
+    arch: amd64
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: multiarch-test
+    arch: amd64
+

@@ -1,2 +1,3 @@
 # Keep empty or add only pure-Python packages to avoid native wheels at first
-
+pytz>=2024.1
+requests>=2.31.0
