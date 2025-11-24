@@ -6,6 +6,9 @@ Prints new IP if it changes.
 import time
 import requests
 import threading
+import logging
+
+logger = logging.getLogger(__name__)
 
 class IPMonitor:
     def __init__(self, check_interval=3600):  # Default: 1 hour
@@ -29,31 +32,31 @@ class IPMonitor:
                     if ip:
                         return ip
             except Exception as e:
-                print(f"Error fetching IP from {service}: {e}")
+                logger.warning(f"Error fetching IP from {service}: {e}")
                 continue
         return None
     
     def check_ip(self):
-        """Check IP and print if it changed."""
+        """Check IP and log if it changed."""
         ip = self.get_public_ip()
         if ip:
             if self.current_ip is None:
-                print(f"[IP Monitor] Initial IP detected: {ip}")
+                logger.info(f"[IP Monitor] Initial IP detected: {ip}")
                 self.current_ip = ip
             elif ip != self.current_ip:
-                print(f"[IP Monitor] IP CHANGED!")
-                print(f"[IP Monitor] Old IP: {self.current_ip}")
-                print(f"[IP Monitor] New IP: {ip}")
+                logger.warning(f"[IP Monitor] IP CHANGED!")
+                logger.warning(f"[IP Monitor] Old IP: {self.current_ip}")
+                logger.warning(f"[IP Monitor] New IP: {ip}")
                 self.current_ip = ip
             else:
-                print(f"[IP Monitor] IP unchanged: {ip}")
+                logger.debug(f"[IP Monitor] IP unchanged: {ip}")
         else:
-            print("[IP Monitor] Failed to retrieve IP address")
+            logger.error("[IP Monitor] Failed to retrieve IP address")
     
     def start_monitoring(self):
         """Start monitoring IP in a background thread."""
         if self.running:
-            print("[IP Monitor] Already running")
+            logger.warning("[IP Monitor] Already running")
             return
         
         self.running = True
@@ -69,16 +72,24 @@ class IPMonitor:
         
         self.thread = threading.Thread(target=monitor_loop, daemon=True)
         self.thread.start()
-        print(f"[IP Monitor] Started monitoring (checking every {self.check_interval} seconds)")
+        logger.info(f"[IP Monitor] Started monitoring (checking every {self.check_interval} seconds)")
     
     def stop_monitoring(self):
         """Stop monitoring IP."""
         self.running = False
         if self.thread:
             self.thread.join(timeout=2)
-        print("[IP Monitor] Stopped monitoring")
+        logger.info("[IP Monitor] Stopped monitoring")
 
 if __name__ == "__main__":
+    import sys
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        stream=sys.stdout
+    )
+    
     monitor = IPMonitor(check_interval=3600)  # Check every hour
     monitor.start_monitoring()
     
@@ -87,6 +98,6 @@ if __name__ == "__main__":
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n[IP Monitor] Shutting down...")
+        logger.info("\n[IP Monitor] Shutting down...")
         monitor.stop_monitoring()
 

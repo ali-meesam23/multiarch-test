@@ -9,8 +9,7 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py /app/app.py
-COPY current_time.py /app/current_time.py
-COPY whatsmyip.py /app/whatsmyip.py
+COPY scripts/ /app/scripts/
+WORKDIR /app/scripts
 
 CMD ["python", "app.py"]

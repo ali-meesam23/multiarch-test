@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: servertime-arm64-node3
+  labels:
+    app: servertime
+    arch: arm64
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: servertime
+      arch: arm64
+  template:
+    metadata:
+      labels:
+        app: servertime
+        arch: arm64
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+        kubernetes.io/hostname: node3
+      containers:
+        - name: app
+          image: docker.io/meesam110/archprint:demo1
+          imagePullPolicy: Always
+          env:
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PORT
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PASSWORD
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
